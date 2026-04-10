@@ -1,0 +1,71 @@
+{
+  "id": "genetics-punnett",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "孟德尔方格图插件",
+  "keywords": [
+    "孟德尔",
+    "遗传",
+    "杂交",
+    "基因型",
+    "表型",
+    "显性",
+    "隐性",
+    "杂合",
+    "纯合",
+    "旁氏棋盘"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "PunnettSquare",
+      "name": "孟德尔方格图（旁氏棋盘）",
+      "tags": ["孟德尔", "方格图", "杂交", "基因型", "表型", "旁氏棋盘"],
+      "props_schema": {
+        "parent1Genotype": {
+          "type": "string",
+          "default": "Aa",
+          "description": "亲本1基因型，如 Aa、AaBb"
+        },
+        "parent2Genotype": {
+          "type": "string",
+          "default": "Aa",
+          "description": "亲本2基因型，如 aa、AaBb"
+        },
+        "trait": {
+          "type": "string",
+          "default": "",
+          "description": "性状名称，如 豌豆颜色"
+        },
+        "showPhenotype": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示表型分析（表型比例、模拟实验）"
+        },
+        "interactive": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否允许点击格子查看详情和运行模拟实验"
+        }
+      },
+      "a2ui_hint": "PunnettSquare 组件可视化孟德尔杂交方格图。LLM只需通过 properties 传入 parent1Genotype 和 parent2Genotype（如 Aa × Aa）即可。组件已内置网格渲染、基因型/表型比例计算、模拟实验按钮和点击交互，不需要额外生成控件。支持单因子（Aa）和多因子（AaBb）杂交。",
+      "expresses": [
+        "杂交后代基因型比例",
+        "杂交后代表型比例",
+        "单因子杂交方格图",
+        "双因子杂交方格图",
+        "显性与隐性性状分布"
+      ],
+      "educational_use": "帮助学生理解孟德尔遗传定律，通过方格图直观展示杂交后代的基因型和表型分离比",
+      "cannot_express": [
+        "基因连锁分析",
+        "染色体交叉互换",
+        "多基因遗传",
+        "伴性遗传",
+        "数量性状遗传"
+      ]
+    }
+  ]
+}

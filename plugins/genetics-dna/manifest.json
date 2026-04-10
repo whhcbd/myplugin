@@ -1,0 +1,60 @@
+{
+  "id": "genetics-dna",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "DNA结构可视化插件",
+  "keywords": [
+    "DNA",
+    "碱基对",
+    "双螺旋",
+    "遗传",
+    "基因",
+    "碱基互补配对",
+    "腺嘌呤",
+    "胸腺嘧啶",
+    "鸟嘌呤",
+    "胞嘧啶"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "DNAStructure",
+      "name": "DNA双螺旋结构可视化",
+      "tags": ["DNA", "碱基对", "双螺旋", "碱基互补配对", "序列"],
+      "props_schema": {
+        "sequence": {
+          "type": "string",
+          "default": "ATCGATCG",
+          "description": "DNA序列（仅含A、T、C、G），例如 ATCGATCG"
+        },
+        "showLabels": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示碱基位置编号和配对规则图例"
+        },
+        "interactive": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否允许点击碱基查看配对详情"
+        }
+      },
+      "a2ui_hint": "DNAStructure 组件可视化DNA双链碱基配对。LLM只需通过 properties 传入 sequence（DNA序列字符串，如 ATCGATCG）、showLabels（布尔值）和 interactive（布尔值）即可。组件已内置碱基点击交互和GC含量统计，不需要额外生成控件。",
+      "expresses": [
+        "DNA碱基互补配对",
+        "AT/GC配对规则",
+        "氢键数量差异",
+        "GC含量计算",
+        "序列互补链"
+      ],
+      "educational_use": "帮助学生理解DNA双螺旋碱基互补配对规则（A-T 2个氢键，G-C 3个氢键），直观展示序列与互补链的关系",
+      "cannot_express": [
+        "DNA三维空间结构",
+        "DNA复制过程",
+        "转录过程",
+        "表观遗传修饰"
+      ]
+    }
+  ]
+}

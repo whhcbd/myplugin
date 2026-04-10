@@ -1,0 +1,66 @@
+{
+  "id": "physics-high-school",
+  "version": "1.0.0",
+  "subject": "physics",
+  "name": "高中物理插件",
+  "keywords": [
+    "振动",
+    "简谐运动",
+    "波",
+    "力学",
+    "电磁",
+    "光学",
+    "周期",
+    "频率",
+    "振幅"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "PhysicsOscillator",
+      "name": "简谐运动模拟器",
+      "tags": ["振动", "简谐运动", "波形", "周期运动"],
+      "props_schema": {
+        "amplitude": {
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 10,
+          "description": "振幅（m）"
+        },
+        "freq": {
+          "type": "number",
+          "default": 1,
+          "min": 0.1,
+          "max": 5,
+          "description": "频率（Hz）"
+        },
+        "phase": {
+          "type": "number",
+          "default": 0,
+          "min": 0,
+          "max": 6.28,
+          "description": "初相位（rad）"
+        }
+      },
+      "a2ui_hint": "PhysicsOscillator 组件已内置参数滑动条（振幅、频率、相位），不需要额外生成 Slider 组件。只需通过 properties 传入初始参数即可。",
+      "expresses": [
+        "简谐运动波形",
+        "振幅变化",
+        "频率变化",
+        "相位偏移",
+        "周期性运动"
+      ],
+      "educational_use": "探索简谐运动参数对波形的影响；验证周期与频率的倒数关系",
+      "cannot_express": [
+        "多质点系统",
+        "阻尼振动衰减",
+        "共振现象",
+        "驻波",
+        "声波传播"
+      ]
+    }
+  ]
+}

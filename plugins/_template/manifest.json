@@ -1,0 +1,11 @@
+{
+  "id": "PLUGIN_ID",
+  "version": "1.0.0",
+  "subject": "",
+  "name": "",
+  "keywords": [],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": []
+}
