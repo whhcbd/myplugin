@@ -15,6 +15,20 @@ export const pluginModules: Record<string, ComponentLoader> = {
     import("@plugins/genetics-dna/src/index").then((m) => m as unknown as PluginModule),
   "genetics-punnett": () =>
     import("@plugins/genetics-punnett/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-phenotype": () =>
+    import("@plugins/genetics-phenotype/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-centraldogma": () =>
+    import("@plugins/genetics-centraldogma/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-flashcard": () =>
+    import("@plugins/genetics-flashcard/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-pedigree": () =>
+    import("@plugins/genetics-pedigree/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-expression": () =>
+    import("@plugins/genetics-expression/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-mendel": () =>
+    import("@plugins/genetics-mendel/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-naturalselection": () =>
+    import("@plugins/genetics-naturalselection/src/index").then((m) => m as unknown as PluginModule),
 };
 
 const registry = new Map<string, RegistryEntry>();

@@ -1,0 +1,68 @@
+{
+  "id": "genetics-mendel",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "孟德尔实验模拟器插件",
+  "keywords": [
+    "孟德尔",
+    "遗传定律",
+    "分离定律",
+    "自由组合",
+    "模拟",
+    "卡方检验",
+    "基因型",
+    "杂交"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "MendelSimulator",
+      "name": "孟德尔实验模拟器",
+      "tags": ["孟德尔", "模拟实验", "基因型比例", "卡方检验", "单因子杂交", "双因子杂交"],
+      "props_schema": {
+        "parent1Genotype": {
+          "type": "string",
+          "default": "Aa",
+          "description": "亲本1基因型，如 Aa（单因子）或 AaBb（双因子）"
+        },
+        "parent2Genotype": {
+          "type": "string",
+          "default": "Aa",
+          "description": "亲本2基因型"
+        },
+        "traitType": {
+          "type": "string",
+          "default": "single",
+          "description": "杂交类型：single（单因子）或 double（双因子）"
+        },
+        "simulationCount": {
+          "type": "number",
+          "default": 1000,
+          "description": "模拟次数（100/1000/10000）"
+        },
+        "interactive": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用交互模式"
+        }
+      },
+      "a2ui_hint": "MendelSimulator 模拟孟德尔遗传实验。LLM通过 properties 传入 parent1Genotype、parent2Genotype（如Aa或AaBb）、simulationCount。组件随机模拟受精过程，统计后代基因型分布，并与理论比例进行卡方检验对比。结果以分组柱状图展示。",
+      "expresses": [
+        "单因子杂交（Aa×Aa）后代比例模拟",
+        "双因子杂交（AaBb×AaBb）后代比例模拟",
+        "实际比例 vs 理论比例分组柱状图",
+        "卡方检验（χ² test）统计结果",
+        "模拟速度控制（慢速/快速/瞬时）"
+      ],
+      "educational_use": "帮助学生理解孟德尔分离定律和自由组合定律，通过大量随机模拟验证理论比例，学习卡方检验方法",
+      "cannot_express": [
+        "连锁遗传分析",
+        "多基因遗传",
+        "伴性遗传",
+        "基因互作（上位效应等）"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": "genetics-phenotype",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "表型分布可视化插件",
+  "keywords": ["表型", "分布", "柱状图", "群体", "遗传", "频率", "基因型"],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "PhenotypeDistribution",
+      "name": "表型分布柱状图",
+      "tags": ["表型", "分布", "柱状图", "群体遗传", "频率"],
+      "props_schema": {
+        "trait": {
+          "type": "string",
+          "default": "豌豆颜色",
+          "description": "性状名称"
+        },
+        "phenotypes": {
+          "type": "string",
+          "default": "黄色,绿色",
+          "description": "表型名称列表，逗号分隔"
+        },
+        "counts": {
+          "type": "string",
+          "default": "75,25",
+          "description": "各表型数量，逗号分隔，与phenotypes一一对应"
+        },
+        "interactive": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否允许点击条形查看详情和筛选"
+        }
+      },
+      "a2ui_hint": "PhenotypeDistribution 组件展示群体表型分布的水平柱状图。LLM只需通过 properties 传入 trait（性状名）、phenotypes（逗号分隔的表型名）和 counts（逗号分隔的数量）即可。组件已内置动画条、筛选控件和点击详情弹窗，不需要额外生成控件。",
+      "expresses": [
+        "表型频率分布",
+        "群体中各表型数量对比",
+        "表型占比百分比",
+        "显性与隐性性状比例"
+      ],
+      "educational_use": "帮助学生直观理解群体中表型分布的频率差异，验证孟德尔分离比",
+      "cannot_express": [
+        "基因型频率计算",
+        "Hardy-Weinberg平衡",
+        "等位基因频率变化",
+        "选择压力模拟"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "genetics-flashcard",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "遗传学翻转卡片插件",
+  "keywords": ["闪卡", "记忆", "复习", "知识点", "遗传学", "翻转卡片", "问答"],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "Flashcard",
+      "name": "翻转记忆卡片",
+      "tags": ["闪卡", "记忆", "翻转", "问答", "知识点"],
+      "props_schema": {
+        "front": {
+          "type": "string",
+          "default": "DNA的双螺旋结构由谁发现？",
+          "description": "卡片正面（问题）"
+        },
+        "back": {
+          "type": "string",
+          "default": "1953年，Watson和Crick提出了DNA双螺旋结构模型",
+          "description": "卡片背面（答案）"
+        },
+        "category": {
+          "type": "string",
+          "default": "分子遗传学",
+          "description": "知识点分类标签"
+        }
+      },
+      "a2ui_hint": "Flashcard 组件是一个点击翻转的记忆卡片，正面显示问题、背面显示答案。LLM只需通过 properties 传入 front（问题）、back（答案）和 category（分类）即可。组件已内置CSS 3D翻转动画，不需要额外生成控件。可连续输出多个Flashcard组件来创建卡片组。",
+      "expresses": [
+        "知识点问答",
+        "概念记忆辅助",
+        "分类标签展示",
+        "正反面信息对照"
+      ],
+      "educational_use": "帮助学生通过翻转卡片形式复习遗传学知识点，适合概念记忆和快速自测",
+      "cannot_express": [
+        "交互式测验评分",
+        "选择题",
+        "填空题",
+        "知识点进度追踪"
+      ]
+    }
+  ]
+}

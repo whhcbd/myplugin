@@ -1,0 +1,59 @@
+{
+  "id": "genetics-pedigree",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "家系图插件",
+  "keywords": [
+    "家系图",
+    "系谱",
+    "遗传",
+    "家族",
+    "常染色体",
+    "X连锁",
+    "显性",
+    "隐性",
+    "先证者"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "PedigreeChart",
+      "name": "家系图（系谱图）",
+      "tags": ["家系图", "系谱", "家族遗传", "常染色体", "X连锁", "先证者"],
+      "props_schema": {
+        "trait": {
+          "type": "string",
+          "default": "",
+          "description": "性状名称"
+        },
+        "inheritanceMode": {
+          "type": "string",
+          "default": "unknown",
+          "description": "遗传方式：AR（常隐）、AD（常显）、XR（X隐）、XD（X显）、Y（Y连锁）、mitochondrial（线粒体）、unknown"
+        },
+        "generations": {
+          "type": "string",
+          "default": "[{\"individuals\":[{\"id\":\"I-1\",\"gender\":\"male\",\"phenotype\":\"normal\",\"generation\":0},{\"id\":\"I-2\",\"gender\":\"female\",\"phenotype\":\"carrier\",\"generation\":0}]},{\"individuals\":[{\"id\":\"II-1\",\"gender\":\"male\",\"phenotype\":\"affected\",\"generation\":1,\"parents\":{\"father\":\"I-1\",\"mother\":\"I-2\"},\"isProband\":true},{\"id\":\"II-2\",\"gender\":\"female\",\"phenotype\":\"normal\",\"generation\":1,\"parents\":{\"father\":\"I-1\",\"mother\":\"I-2\"}}]}]",
+          "description": "家系数据的JSON字符串，格式为Generation数组。每个Generation含individuals数组，每个individual含id/gender/phenotype/generation/parents等字段"
+        }
+      },
+      "a2ui_hint": "PedigreeChart 组件展示标准遗传学家系图。LLM通过 properties 传入 generations（JSON字符串，描述每代个体的性别、表型、亲缘关系）、trait（性状名）和 inheritanceMode（遗传方式）。组件自动渲染方形（男）、圆形（女）符号，实心=患病、空心=正常、圆点=携带者，自动连线表示亲子关系，支持缩放和平移。",
+      "expresses": [
+        "标准遗传学家系图符号",
+        "多世代亲缘关系连线",
+        "常染色体显/隐性遗传模式",
+        "X连锁显/隐性遗传模式",
+        "表型和基因型统计"
+      ],
+      "educational_use": "帮助学生理解家系图的标准绘制方法和遗传分析，通过可视化家族成员的表型分布判断遗传方式",
+      "cannot_express": [
+        "动态添加/删除个体",
+        "基因型自动推断",
+        "多基因遗传分析",
+        "连锁分析计算"
+      ]
+    }
+  ]
+}

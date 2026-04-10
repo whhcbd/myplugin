@@ -42,6 +42,42 @@ hereisplugin/
 │       │   ├── index.ts              # 导出 { components: { PunnettSquare } }
 │       │   └── PunnettSquare.tsx     # 孟德尔方格图（杂交后代基因型/表型）
 │       └── dist/
+│   ├── genetics-phenotype/           # 遗传学插件：表型分布柱状图
+│   │   ├── manifest.json
+│   │   ├── package.json
+│   │   ├── vite.config.ts
+│   │   ├── tsconfig.json
+│   │   ├── src/
+│   │   │   ├── index.ts              # 导出 { components: { PhenotypeDistribution } }
+│   │   │   └── PhenotypeDistribution.tsx  # 表型分布水平柱状图
+│   │   └── dist/
+│   ├── genetics-centraldogma/        # 遗传学插件：中心法则动画
+│   │   ├── manifest.json
+│   │   ├── package.json
+│   │   ├── vite.config.ts
+│   │   ├── tsconfig.json
+│   │   ├── src/
+│   │   │   ├── index.ts              # 导出 { components: { CentralDogma } }
+│   │   │   └── CentralDogma.tsx      # 中心法则（DNA复制→转录→翻译）动画
+│   │   └── dist/
+│       ├── genetics-flashcard/           # 遗传学插件：翻转记忆卡片
+│       ├── manifest.json
+│       ├── package.json
+│       ├── vite.config.ts
+│       ├── tsconfig.json
+│       ├── src/
+│       │   ├── index.ts              # 导出 { components: { Flashcard } }
+│       │   └── Flashcard.tsx         # 点击翻转的记忆卡片（问题/答案）
+│       └── dist/
+│   └── genetics-crossover/           # 遗传学插件：交叉互换图谱
+│       ├── manifest.json
+│       ├── package.json
+│       ├── vite.config.ts
+│       ├── tsconfig.json
+│       ├── src/
+│       │   ├── index.ts              # 导出 { components: { CrossoverMap } }
+│       │   └── CrossoverMap.tsx      # 染色体交叉互换图谱可视化
+│       └── dist/
 │
 ├── backend/                          # FastAPI 后端
 │   ├── main.py                       # 入口，启动时扫描 plugins/ 目录
@@ -94,6 +130,46 @@ npm run build
 
 # 孟德尔方格图插件
 cd plugins/genetics-punnett
+npm install
+npm run build
+
+# 表型分布插件
+cd plugins/genetics-phenotype
+npm install
+npm run build
+
+# 中心法则插件
+cd plugins/genetics-centraldogma
+npm install
+npm run build
+
+# 翻转卡片插件
+cd plugins/genetics-flashcard
+npm install
+npm run build
+
+# 家系图插件
+cd plugins/genetics-pedigree
+npm install
+npm run build
+
+# 基因表达水平插件
+cd plugins/genetics-expression
+npm install
+npm run build
+
+# 孟德尔实验模拟器插件
+cd plugins/genetics-mendel
+npm install
+npm run build
+
+# 自然选择模拟器插件
+cd plugins/genetics-naturalselection
+npm install
+npm run build
+
+# 交叉互换图谱插件
+cd plugins/genetics-crossover
 npm install
 npm run build
 ```
@@ -210,6 +286,14 @@ const pluginModules: Record<string, () => Promise<PluginModule>> = {
 | `physics-high-school` | 物理 | `PhysicsOscillator` | 简谐运动波形模拟器，Canvas 动画 + 振幅/频率/相位滑块 |
 | `genetics-dna` | 遗传 | `DNAStructure` | DNA 双链碱基配对可视化，点击查看氢键详情，GC 含量统计 |
 | `genetics-punnett` | 遗传 | `PunnettSquare` | 孟德尔方格图，支持单/多因子杂交，表型比例分析，模拟实验 |
+| `genetics-phenotype` | 遗传 | `PhenotypeDistribution` | 表型分布水平柱状图，带动画条、筛选控件和点击详情 |
+| `genetics-centraldogma` | 遗传 | `CentralDogma` | 中心法则动画演示（DNA复制→转录→翻译），碱基着色+密码子表 |
+| `genetics-flashcard` | 遗传 | `Flashcard` | 翻转记忆卡片，CSS 3D 翻转动画，正面问题/背面答案 |
+| `genetics-pedigree` | 遗传 | `PedigreeChart` | 标准遗传学家系图，方形/圆形符号，SVG连线，缩放平移，点击查看详情 |
+| `genetics-expression` | 遗传 | `GeneExpression` | 基因表达水平可视化，条形图/折线图切换，交互滑块，lac操纵子模拟 |
+| `genetics-mendel` | 遗传 | `MendelSimulator` | 孟德尔实验模拟器，随机受精模拟，实际vs理论分组柱状图，卡方检验 |
+| `genetics-naturalselection` | 遗传 | `NaturalSelectionSimulator` | 自然选择模拟器，2D种群分布Canvas，等位基因频率折线图，选择压力调节 |
+| `genetics-crossover` | 遗传 | `CrossoverMap` | 染色体交叉互换图谱，基因位点标注，着丝粒/带型显示，重组频率计算，点击查看详情 |
 
 ### Simulate Chat 示例
 

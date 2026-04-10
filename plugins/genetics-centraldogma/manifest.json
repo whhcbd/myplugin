@@ -1,0 +1,46 @@
+{
+  "id": "genetics-centraldogma",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "中心法则演示插件",
+  "keywords": ["中心法则", "DNA复制", "转录", "翻译", "mRNA", "蛋白质", "密码子", "氨基酸"],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "CentralDogma",
+      "name": "中心法则动画演示",
+      "tags": ["中心法则", "DNA复制", "转录", "翻译", "mRNA", "蛋白质"],
+      "props_schema": {
+        "dnaSequence": {
+          "type": "string",
+          "default": "ATCGATCG",
+          "description": "DNA序列（仅含A、T、C、G），建议长度为3的倍数"
+        },
+        "animationSpeed": {
+          "type": "number",
+          "default": 800,
+          "min": 200,
+          "max": 3000,
+          "description": "动画步进间隔（毫秒），越小越快"
+        }
+      },
+      "a2ui_hint": "CentralDogma 组件演示中心法则全过程（DNA复制→转录→翻译）。LLM只需通过 properties 传入 dnaSequence 即可。组件已内置阶段切换按钮（复制/转录/翻译）、播放/暂停/重置控件、碱基着色和密码子到氨基酸的翻译表，不需要额外生成控件。",
+      "expresses": [
+        "DNA半保留复制",
+        "转录（DNA→mRNA）",
+        "翻译（mRNA→蛋白质）",
+        "碱基互补配对",
+        "密码子与氨基酸对应"
+      ],
+      "educational_use": "帮助学生理解中心法则的信息流动过程：DNA复制、转录为mRNA、翻译为蛋白质",
+      "cannot_express": [
+        "RNA剪接",
+        "翻译后修饰",
+        "逆转录",
+        "表观遗传调控"
+      ]
+    }
+  ]
+}

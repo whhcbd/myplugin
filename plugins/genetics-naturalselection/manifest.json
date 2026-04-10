@@ -1,0 +1,68 @@
+{
+  "id": "genetics-naturalselection",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "自然选择模拟器插件",
+  "keywords": [
+    "自然选择",
+    "进化",
+    "等位基因频率",
+    "种群",
+    "适应度",
+    "选择压力",
+    "基因频率变化"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "NaturalSelectionSimulator",
+      "name": "自然选择模拟器",
+      "tags": ["自然选择", "进化模拟", "等位基因频率", "种群可视化", "选择压力", "适应度"],
+      "props_schema": {
+        "populationSize": {
+          "type": "number",
+          "default": 100,
+          "description": "种群大小（50-200）"
+        },
+        "initialFreqA": {
+          "type": "number",
+          "default": 0.5,
+          "description": "初始A等位基因频率（0-1）"
+        },
+        "environmentType": {
+          "type": "string",
+          "default": "dark",
+          "description": "环境类型：dark（深色环境，有利于深色个体）或 light（浅色环境，有利于浅色个体）"
+        },
+        "selectionStrength": {
+          "type": "number",
+          "default": 0.5,
+          "description": "选择压力强度（0-1）"
+        },
+        "interactive": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用交互模式"
+        }
+      },
+      "a2ui_hint": "NaturalSelectionSimulator 模拟种群中的自然选择过程。LLM通过 properties 传入 populationSize、initialFreqA（初始等位基因频率）、environmentType（dark/light环境）、selectionStrength。组件可视化种群个体分布（2D Canvas），并绘制等位基因频率随世代变化的折线图。",
+      "expresses": [
+        "2D种群个体分布可视化（深色/中间/浅色个体）",
+        "等位基因频率随世代变化的折线图",
+        "自然选择过程动态模拟（选择→繁殖循环）",
+        "适应度计算与存活率展示",
+        "多参数调节（种群大小/频率/环境/选择压力）"
+      ],
+      "educational_use": "帮助学生理解自然选择如何改变种群等位基因频率，观察不同环境条件和选择压力下的进化趋势",
+      "cannot_express": [
+        "多基因性状选择",
+        "遗传漂变模拟",
+        "基因流动",
+        "突变率影响分析",
+        "物种形成过程"
+      ]
+    }
+  ]
+}

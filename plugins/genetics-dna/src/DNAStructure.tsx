@@ -25,10 +25,10 @@ const COMPLEMENTARY: Record<string, string> = {
 };
 
 const BASE_NAMES: Record<string, string> = {
-  A: "\u817a\u560c\u5456",
-  T: "\u80f8\u817a\u5631\u5576",
-  C: "\u80de\u5631\u5576",
-  G: "\u9e1f\u5631\u5576",
+  A: "腺嘌呤",
+  T: "胸腺嘧啶",
+  C: "胞嘧啶",
+  G: "鸟嘌呤",
 };
 
 const BASE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
@@ -111,8 +111,8 @@ export function DNAStructure({ node }: { node: A2UINode }) {
         }}
       >
         {upperSeq.length === 0
-          ? "\u8bf7\u8f93\u5165DNA\u5e8f\u5217\uff08\u4f8b\u5982\uff1aATCGATCG\uff09"
-          : "DNA\u5e8f\u5217\u5305\u542b\u65e0\u6548\u7684\u78b1\u57fa\u3002\u8bf7\u53ea\u4f7f\u7528 A\u3001T\u3001C\u3001G\u3002"}
+          ? "请输入 DNA 序列（例如：ATCGATCG）"
+          : "DNA 序列包含无效的碱基。请只使用 A、T、C、G。"}
       </div>
     );
   }
@@ -158,7 +158,7 @@ export function DNAStructure({ node }: { node: A2UINode }) {
           marginBottom: 12,
         }}
       >
-        DNA \u53cc\u87ba\u65cb\u7ed3\u6784
+        DNA 双螺旋结构
       </div>
 
       <div
@@ -246,9 +246,9 @@ export function DNAStructure({ node }: { node: A2UINode }) {
         }}
       >
         <div style={{ fontFamily: "monospace", fontSize: 14, color: "#1b1c1a", lineHeight: 1.8, wordBreak: "break-all" }}>
-          <strong>5'→3' \u94fe\uff1a</strong>{upperSeq}
+          <strong>5'→3' 链：</strong>{upperSeq}
           <br />
-          <strong>3'→5' \u94fe\uff1a</strong>{complementaryStrand}
+          <strong>3'→5' 链：</strong>{complementaryStrand}
         </div>
       </div>
 
@@ -264,15 +264,15 @@ export function DNAStructure({ node }: { node: A2UINode }) {
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 12, color: "#6b7280" }}>\u5e8f\u5217\u957f\u5ea6</div>
+          <div style={{ fontSize: 12, color: "#6b7280" }}>序列长度</div>
           <div style={{ fontSize: 18, fontWeight: 600, color: "#182544" }}>{stats.length}</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 12, color: "#6b7280" }}>\u78b1\u57fa\u5bf9</div>
+          <div style={{ fontSize: 12, color: "#6b7280" }}>碱基对</div>
           <div style={{ fontSize: 18, fontWeight: 600, color: "#182544" }}>{stats.length}</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 12, color: "#6b7280" }}>GC \u542b\u91cf</div>
+          <div style={{ fontSize: 12, color: "#6b7280" }}>GC 含量</div>
           <div style={{ fontSize: 18, fontWeight: 600, color: "#182544" }}>{stats.gcContent.toFixed(1)}%</div>
         </div>
       </div>
@@ -288,7 +288,7 @@ export function DNAStructure({ node }: { node: A2UINode }) {
           }}
         >
           <div style={{ fontSize: 13, fontWeight: 600, color: "#182544", marginBottom: 8 }}>
-            \u78b1\u57fa\u914d\u5bf9\u89c4\u5219
+            碱基配对规则
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
             {(["A", "T", "C", "G"] as const).map((b) => (
@@ -315,7 +315,7 @@ export function DNAStructure({ node }: { node: A2UINode }) {
                   {BASE_NAMES[b]}
                   <br />
                   <span style={{ fontSize: 10 }}>
-                    \u4e0e {BASE_NAMES[COMPLEMENTARY[b]]} ({COMPLEMENTARY[b]}) \u914d\u5bf9 - {b === "A" || b === "T" ? 2 : 3}\u4e2a\u6c22\u952e
+                    与 {BASE_NAMES[COMPLEMENTARY[b]]} ({COMPLEMENTARY[b]}) 配对 - {b === "A" || b === "T" ? 2 : 3} 个氢键
                   </span>
                 </div>
               </div>
@@ -380,28 +380,28 @@ export function DNAStructure({ node }: { node: A2UINode }) {
                 borderBottom: "2px solid #e5e7eb",
               }}
             >
-              \u78b1\u57fa\u914d\u5bf9\u8be6\u60c5
+              碱基配对详情
             </div>
             <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.8 }}>
-              <p><strong style={{ color: "#182544" }}>\u9009\u4e2d\u78b1\u57fa\uff1a</strong>{BASE_NAMES[selectedBase.base]} ({selectedBase.base})</p>
-              <p><strong style={{ color: "#182544" }}>\u914d\u5bf9\u78b1\u57fa\uff1a</strong>{BASE_NAMES[selectedBase.pair]} ({selectedBase.pair})</p>
-              <p><strong style={{ color: "#182544" }}>\u6c22\u952e\u6570\u91cf\uff1a</strong>{(selectedBase.base === "A" || selectedBase.base === "T") ? 2 : 3} \u4e2a</p>
-              <p><strong style={{ color: "#182544" }}>\u914d\u5bf9\u89c4\u5219\uff1a</strong></p>
+              <p><strong style={{ color: "#182544" }}>选中碱基：</strong>{BASE_NAMES[selectedBase.base]} ({selectedBase.base})</p>
+              <p><strong style={{ color: "#182544" }}>配对碱基：</strong>{BASE_NAMES[selectedBase.pair]} ({selectedBase.pair})</p>
+              <p><strong style={{ color: "#182544" }}>氢键数量：</strong>{(selectedBase.base === "A" || selectedBase.base === "T") ? 2 : 3} 个</p>
+              <p><strong style={{ color: "#182544" }}>配对规则：</strong></p>
               <ul style={{ margin: "8px 0", paddingLeft: 20 }}>
                 {(selectedBase.base === "A" || selectedBase.base === "T") ? (
                   <>
-                    <li>\u817a\u560c\u5456 (A) \u4e0e \u80f8\u817a\u5631\u5576 (T) \u901a\u8fc7 <strong>2\u4e2a\u6c22\u952e</strong> \u914d\u5bf9</li>
-                    <li>\u5618\u5456\u4e0e\u5631\u5576\u914d\u5bf9\uff0c\u4fdd\u6301DNA\u53cc\u87ba\u65cb\u7ed3\u6784\u7a33\u5b9a</li>
+                    <li>腺嘌呤 (A) 与 胸腺嘧啶 (T) 通过 <strong>2 个氢键</strong> 配对</li>
+                    <li>嘌呤与嘧啶配对，保持 DNA 双螺旋结构稳定</li>
                   </>
                 ) : (
                   <>
-                    <li>\u9e1f\u5631\u5576 (G) \u4e0e \u80de\u5631\u5576 (C) \u901a\u8fc7 <strong>3\u4e2a\u6c22\u952e</strong> \u914d\u5bf9</li>
-                    <li>G-C \u914d\u5bf9\u6bd4 A-T \u914d\u5bf9\u66f4\u7a33\u5b9a\uff08\u6c22\u952e\u66f4\u591a\uff09</li>
+                    <li>鸟嘌呤 (G) 与 胞嘧啶 (C) 通过 <strong>3 个氢键</strong> 配对</li>
+                    <li>G-C 配对比 A-T 配对更稳定（氢键更多）</li>
                   </>
                 )}
               </ul>
               <p style={{ marginTop: 12, fontSize: 13, color: "#6b7280" }}>
-                \u78b1\u57fa\u4e92\u8865\u914d\u5bf9\u662fDNA\u590d\u5236\u548c\u9057\u4f20\u4fe1\u606f\u4f20\u9012\u7684\u57fa\u7840
+                碱基互补配对是 DNA 复制和遗传信息传递的基础
               </p>
             </div>
           </div>

@@ -1,0 +1,57 @@
+{
+  "id": "genetics-expression",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "基因表达水平插件",
+  "keywords": [
+    "基因表达",
+    "表达量",
+    "条形图",
+    "折线图",
+    "lac操纵子",
+    "乳糖",
+    "调控"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "GeneExpression",
+      "name": "基因表达水平可视化",
+      "tags": ["基因表达", "表达量", "柱状图", "折线图", "lac操纵子", "条件对比"],
+      "props_schema": {
+        "genes": {
+          "type": "string",
+          "default": "[{\"gene\":\"GeneA\",\"expressionLevels\":[80,45,90]},{\"gene\":\"GeneB\",\"expressionLevels\":[30,60,50]},{\"gene\":\"GeneC\",\"expressionLevels\":[70,20,85]}]",
+          "description": "基因数据JSON字符串，每个对象含gene（基因名）和expressionLevels（各条件下的表达量数组）"
+        },
+        "conditions": {
+          "type": "string",
+          "default": "[{\"name\":\"正常\",\"color\":\"#182544\"},{\"name\":\"胁迫\",\"color\":\"#775a19\"},{\"name\":\"恢复\",\"color\":\"#5a7752\"}]",
+          "description": "条件数据JSON字符串，每个对象含name（条件名）和可选color（颜色）"
+        },
+        "interactive": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用交互模式（滑块调节、lac操纵子模拟）"
+        }
+      },
+      "a2ui_hint": "GeneExpression 组件展示不同条件下基因的表达水平。LLM通过 properties 传入 genes（JSON字符串，描述基因和表达量）和 conditions（JSON字符串，描述实验条件）。支持条形图和折线图切换，交互模式下提供滑块调节表达量以及 lac 操纵子模拟开关。",
+      "expresses": [
+        "多条件基因表达水平条形图",
+        "基因表达折线图趋势对比",
+        "交互式表达量滑块调节",
+        "lac操纵子模拟（乳糖开关）",
+        "基因表达统计（最大值/平均值）"
+      ],
+      "educational_use": "帮助学生理解基因表达调控机制，特别是lac操纵子模型中环境因素（乳糖）对基因表达的影响",
+      "cannot_express": [
+        "实时RNA-seq数据处理",
+        "差异表达统计分析",
+        "热图（heatmap）展示",
+        "多物种基因表达比较"
+      ]
+    }
+  ]
+}

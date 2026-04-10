@@ -56,9 +56,9 @@ function combineGametes(g1: string, g2: string): string {
 
 function determinePhenotype(genotype: string): string {
   const upperCaseCount = (genotype.match(/[A-Z]/g) || []).length;
-  if (upperCaseCount === genotype.length) return "\u663e\u6027";
-  if (upperCaseCount === 0) return "\u9690\u6027";
-  return "\u6742\u5408";
+  if (upperCaseCount === genotype.length) return "显性";
+  if (upperCaseCount === 0) return "隐性";
+  return "杂合";
 }
 
 function calculateOffspring(parent1: string, parent2: string): GenotypeData[] {
@@ -85,8 +85,8 @@ function getPhenotypeRatios(offspring: GenotypeData[]): Map<string, number> {
 }
 
 function getPhenotypeColor(phenotype: string): string {
-  if (phenotype.includes("\u663e\u6027")) return "#182544";
-  if (phenotype.includes("\u9690\u6027")) return "#d1d5db";
+  if (phenotype.includes("显性")) return "#182544";
+  if (phenotype.includes("隐性")) return "#d1d5db";
   return "#775a19";
 }
 
@@ -176,7 +176,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           fontStyle: "italic",
         }}
       >
-        \u8bf7\u8f93\u5165\u6709\u6548\u7684\u57fa\u56e0\u578b\uff08\u4f8b\u5982\uff1aAa, AaBb\uff09
+        请输入有效的基因型（例如：Aa, AaBb）
       </div>
     );
   }
@@ -186,9 +186,9 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
   const gridRows = gametes2.length;
 
   const PHENOTYPE_LABELS: Record<string, string> = {
-    "\u663e\u6027": "\u663e\u6027\u6027\u72b6",
-    "\u9690\u6027": "\u9690\u6027\u6027\u72b6",
-    "\u6742\u5408": "\u6742\u5408\u5b50",
+    显性: "显性性状",
+    隐性: "隐性性状",
+    杂合: "杂合子",
   };
 
   return (
@@ -209,7 +209,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           marginBottom: 12,
         }}
       >
-        {trait || "\u5b5f\u5fb7\u5c14\u65b9\u683c\u56fe"}
+        {trait || "孟德尔方格图"}
       </div>
 
       <div style={{ textAlign: "center", marginBottom: 8, fontSize: 13, color: "#1b1c1a" }}>
@@ -330,12 +330,12 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           }}
         >
           <div style={{ fontWeight: 600, color: "#182544", marginBottom: 4 }}>
-            \u683c\u5b50\u8be6\u60c5 [{gametes2[selectedCell.row]}] × [{gametes1[selectedCell.col]}]
+            格子详情 [{gametes2[selectedCell.row]}] × [{gametes1[selectedCell.col]}]
           </div>
-          <div>\u57fa\u56e0\u578b\uff1a{selectedCell.genotype}</div>
-          <div>\u8868\u578b\uff1a{selectedCell.phenotype}</div>
+          <div>基因型：{selectedCell.genotype}</div>
+          <div>表型：{selectedCell.phenotype}</div>
           <div style={{ marginTop: 4, fontSize: 12, color: "#6b7280" }}>
-            \u8be5\u683c\u5b50\u6982\u7387\uff1a1/{offspring.length}
+            该格子概率：1/{offspring.length}
           </div>
         </div>
       )}
@@ -351,7 +351,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           }}
         >
           <div style={{ fontWeight: 600, color: "#182544", marginBottom: 8, fontSize: 13 }}>
-            \u8868\u578b\u6bd4\u4f8b\u5206\u6790
+            表型比例分析
           </div>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {Array.from(phenotypeRatios.entries()).map(([pheno, count]) => {
@@ -413,7 +413,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
               transition: "background 0.2s",
             }}
           >
-            {simulating ? "\u6a21\u62df\u4e2d..." : "\u6a21\u62df\u5b9e\u9a8c (1000\u6b21)"}
+            {simulating ? "模拟中..." : "模拟实验 (1000次)"}
           </button>
           <button
             onClick={handleReset}
@@ -429,7 +429,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
               fontFamily: "Manrope, sans-serif",
             }}
           >
-            \u91cd\u7f6e
+            重置
           </button>
         </div>
       )}
@@ -445,7 +445,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           }}
         >
           <div style={{ fontWeight: 600, color: "#182544", marginBottom: 8, fontSize: 13 }}>
-            \u6a21\u62df\u7ed3\u679c\uff081000\u6b21\u968f\u673a\u4ea4\u914d\uff09
+            模拟结果（1000次随机交配）
           </div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             {Array.from(simResults.entries()).map(([pheno, count]) => (
@@ -480,15 +480,15 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 12, height: 12, borderRadius: 3, background: "#182544" }} />
-              <span>\u663e\u6027\u6027\u72b6</span>
+              <span>显性性状</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 12, height: 12, borderRadius: 3, background: "#d1d5db" }} />
-              <span>\u9690\u6027\u6027\u72b6</span>
+              <span>隐性性状</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 12, height: 12, borderRadius: 3, background: "#775a19" }} />
-              <span>\u6742\u5408\u5b50</span>
+              <span>杂合子</span>
             </div>
           </div>
         </div>
