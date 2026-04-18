@@ -30,42 +30,54 @@ interface ChiSquare {
 }
 
 function getGametes(gt: string): string[] {
-  if (gt.length === 2) return [gt[0], gt[1]];
-  if (gt.length === 4) return [gt[0]+gt[2], gt[0]+gt[3], gt[1]+gt[2], gt[1]+gt[3]];
-  return [];
+  if (!gt || gt.length === 0 || gt.length % 2 !== 0) return [];
+  const genePairs: string[][] = [];
+  for (let i = 0; i < gt.length; i += 2) {
+    genePairs.push([gt[i], gt[i + 1]]);
+  }
+  return cartProd(genePairs).map(g => g.join(""));
+}
+
+function cartProd(arrays: string[][]): string[][] {
+  if (arrays.length === 0) return [[]];
+  if (arrays.length === 1) return arrays[0].map(x => [x]);
+  const [first, ...rest] = arrays;
+  const restProd = cartProd(rest);
+  const result: string[][] = [];
+  for (const item of first) {
+    for (const combo of restProd) {
+      result.push([item, ...combo]);
+    }
+  }
+  return result;
 }
 
 function normalizeGt(gt: string): string {
-  if (gt.length === 2) {
-    return gt.split("").sort((a, b) => {
+  let result = "";
+  for (let i = 0; i < gt.length; i += 2) {
+    if (i + 1 >= gt.length) { result += gt[i]; break; }
+    const pair = [gt[i], gt[i + 1]].sort((a, b) => {
       if (a === a.toUpperCase() && b === b.toLowerCase()) return -1;
       if (a === a.toLowerCase() && b === b.toUpperCase()) return 1;
       return a.localeCompare(b);
-    }).join("");
+    });
+    result += pair.join("");
   }
-  if (gt.length === 4) {
-    const s = (x: string) => x.split("").sort((a, b) => {
-      if (a === a.toUpperCase() && b === b.toLowerCase()) return -1;
-      if (a === a.toLowerCase() && b === b.toUpperCase()) return 1;
-      return a.localeCompare(b);
-    }).join("");
-    return s(gt.slice(0, 2)) + s(gt.slice(2));
-  }
-  return gt;
+  return result;
 }
 
 function expectedPct(genotype: string, p1: string, p2: string): number {
-  if (p1 === "Aa" && p2 === "Aa") {
-    if (genotype === "AA") return 25;
-    if (genotype === "Aa") return 50;
-    if (genotype === "aa") return 25;
+  const g1 = getGametes(p1);
+  const g2 = getGametes(p2);
+  if (g1.length === 0 || g2.length === 0) return 0;
+  const total = g1.length * g2.length;
+  let count = 0;
+  for (const a of g1) {
+    for (const b of g2) {
+      if (normalizeGt(a + b) === genotype) count++;
+    }
   }
-  if (p1 === "AaBb" && p2 === "AaBb") {
-    const m: Record<string, number> = { AABB:6.25,AABb:12.5,AAbb:6.25,AaBB:12.5,AaBb:25,Aabb:12.5,aaBB:6.25,aaBb:12.5,aabb:6.25 };
-    return m[genotype] || 0;
-  }
-  const g1 = getGametes(p1), g2 = getGametes(p2);
-  return 100 / (g1.length * g2.length);
+  return (count / total) * 100;
 }
 
 function estimateP(chi: number, df: number): number {

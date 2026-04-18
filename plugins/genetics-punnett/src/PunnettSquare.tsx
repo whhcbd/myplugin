@@ -55,10 +55,15 @@ function combineGametes(g1: string, g2: string): string {
 }
 
 function determinePhenotype(genotype: string): string {
-  const upperCaseCount = (genotype.match(/[A-Z]/g) || []).length;
-  if (upperCaseCount === genotype.length) return "显性";
-  if (upperCaseCount === 0) return "隐性";
-  return "杂合";
+  const genePairs: string[] = [];
+  for (let i = 0; i < genotype.length; i += 2) {
+    genePairs.push(genotype.slice(i, i + 2));
+  }
+  const traits = genePairs.map(pair => {
+    const hasDominant = pair.split("").some(ch => ch === ch.toUpperCase());
+    return hasDominant ? "显" : "隐";
+  });
+  return traits.join("");
 }
 
 function calculateOffspring(parent1: string, parent2: string): GenotypeData[] {
@@ -85,9 +90,14 @@ function getPhenotypeRatios(offspring: GenotypeData[]): Map<string, number> {
 }
 
 function getPhenotypeColor(phenotype: string): string {
-  if (phenotype.includes("显性")) return "#182544";
-  if (phenotype.includes("隐性")) return "#d1d5db";
-  return "#775a19";
+  if (phenotype.includes("隐") && !phenotype.includes("显")) return "#d1d5db";
+  if (!phenotype.includes("隐")) return "#182544";
+  const dominantCount = (phenotype.match(/显/g) || []).length;
+  const total = phenotype.length;
+  const ratio = dominantCount / total;
+  if (ratio > 0.7) return "#182544";
+  if (ratio > 0.3) return "#775a19";
+  return "#d1d5db";
 }
 
 interface CellInfo {
@@ -185,11 +195,17 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
   const gridCols = gametes1.length;
   const gridRows = gametes2.length;
 
-  const PHENOTYPE_LABELS: Record<string, string> = {
-    显性: "显性性状",
-    隐性: "隐性性状",
-    杂合: "杂合子",
-  };
+  const geneCount = parent1.length / 2;
+  const PHENOTYPE_LABELS: Record<string, string> = {};
+  if (geneCount === 1) {
+    PHENOTYPE_LABELS["显"] = "显性性状";
+    PHENOTYPE_LABELS["隐"] = "隐性性状";
+  } else if (geneCount === 2) {
+    PHENOTYPE_LABELS["显显"] = "双显性";
+    PHENOTYPE_LABELS["显隐"] = "显A隐B";
+    PHENOTYPE_LABELS["隐显"] = "隐A显B";
+    PHENOTYPE_LABELS["隐隐"] = "双隐性";
+  }
 
   return (
     <div
@@ -465,7 +481,7 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
         </div>
       )}
 
-      {showPhenotype && (
+      {showPhenotype && phenotypeRatios && (
         <div
           style={{
             marginTop: 12,
@@ -478,18 +494,12 @@ export function PunnettSquare({ node }: { node: A2UINode }) {
           }}
         >
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: "#182544" }} />
-              <span>显性性状</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: "#d1d5db" }} />
-              <span>隐性性状</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: "#775a19" }} />
-              <span>杂合子</span>
-            </div>
+            {Array.from(phenotypeRatios.keys()).map(pheno => (
+              <div key={pheno} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 12, height: 12, borderRadius: 3, background: getPhenotypeColor(pheno) }} />
+                <span>{PHENOTYPE_LABELS[pheno] || pheno}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

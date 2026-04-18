@@ -28,9 +28,9 @@ const COLORS = [
 ];
 
 const defaultGenes: GeneData[] = [
-  { gene: "GeneA", expressionLevels: [80, 45, 90] },
-  { gene: "GeneB", expressionLevels: [30, 60, 50] },
-  { gene: "GeneC", expressionLevels: [70, 20, 85] },
+  { gene: "lacZ", expressionLevels: [80, 45, 90] },
+  { gene: "lacY", expressionLevels: [30, 60, 50] },
+  { gene: "lacA", expressionLevels: [70, 20, 85] },
 ];
 
 const defaultConditions: Condition[] = [

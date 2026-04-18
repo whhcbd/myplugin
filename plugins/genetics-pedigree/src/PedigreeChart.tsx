@@ -144,7 +144,6 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
   useEffect(() => { setGenerations(initGens); setSelected(null); }, [initGens]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0 });
   const panOffset = useRef({ x: 0, y: 0 });
@@ -164,11 +163,8 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
     });
   });
 
-  const drawConnections = useCallback(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-
+  const buildConnectionElements = useCallback(() => {
+    const elements: JSX.Element[] = [];
     const groups = groupChildrenByParents(generations);
 
     const drawnSpouse = new Set<string>();
@@ -180,17 +176,15 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
       const p1 = positions.get(ind.id);
       const p2 = positions.get(ind.spouseId);
       if (!p1 || !p2) continue;
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", String(p1.x));
-      line.setAttribute("y1", String(p1.y));
-      line.setAttribute("x2", String(p2.x));
-      line.setAttribute("y2", String(p2.y));
-      line.setAttribute("stroke", ind.matingType === "consanguineous" ? "#ef4444" : "#182544");
-      line.setAttribute("stroke-width", ind.matingType === "consanguineous" ? "2" : "1.5");
-      if (ind.matingType === "divorced" || ind.matingType === "separated") {
-        line.setAttribute("stroke-dasharray", "6 3");
-      }
-      svg.appendChild(line);
+      elements.push(
+        <line
+          key={`spouse-${key}`}
+          x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
+          stroke={ind.matingType === "consanguineous" ? "#ef4444" : "#182544"}
+          strokeWidth={ind.matingType === "consanguineous" ? 2 : 1.5}
+          strokeDasharray={ind.matingType === "divorced" || ind.matingType === "separated" ? "6 3" : undefined}
+        />
+      );
     }
 
     for (const group of groups) {
@@ -200,14 +194,14 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
 
       const spouseKey = [group.fatherId, group.motherId].sort().join("-");
       if (!drawnSpouse.has(spouseKey)) {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", String(fp.x));
-        line.setAttribute("y1", String(fp.y));
-        line.setAttribute("x2", String(mp.x));
-        line.setAttribute("y2", String(mp.y));
-        line.setAttribute("stroke", "#182544");
-        line.setAttribute("stroke-width", "1.5");
-        svg.appendChild(line);
+        elements.push(
+          <line
+            key={`spouse-${spouseKey}`}
+            x1={fp.x} y1={fp.y} x2={mp.x} y2={mp.y}
+            stroke="#182544"
+            strokeWidth={1.5}
+          />
+        );
         drawnSpouse.add(spouseKey);
       }
 
@@ -215,14 +209,14 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
       const midY = fp.y + SYM;
       const sibY = fp.y + ROW_H * 0.55;
 
-      const vl = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      vl.setAttribute("x1", String(midX));
-      vl.setAttribute("y1", String(midY));
-      vl.setAttribute("x2", String(midX));
-      vl.setAttribute("y2", String(sibY));
-      vl.setAttribute("stroke", "#182544");
-      vl.setAttribute("stroke-width", "1.5");
-      svg.appendChild(vl);
+      elements.push(
+        <line
+          key={`vl-${group.fatherId}-${group.motherId}`}
+          x1={midX} y1={midY} x2={midX} y2={sibY}
+          stroke="#182544"
+          strokeWidth={1.5}
+        />
+      );
 
       const childPositions = group.childIds
         .map((cid) => positions.get(cid))
@@ -231,32 +225,31 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
       if (childPositions.length > 0) {
         const leftX = Math.min(...childPositions.map((c) => c.x));
         const rightX = Math.max(...childPositions.map((c) => c.x));
-        const hl = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        hl.setAttribute("x1", String(Math.min(midX, leftX)));
-        hl.setAttribute("y1", String(sibY));
-        hl.setAttribute("x2", String(Math.max(midX, rightX)));
-        hl.setAttribute("y2", String(sibY));
-        hl.setAttribute("stroke", "#182544");
-        hl.setAttribute("stroke-width", "1.5");
-        svg.appendChild(hl);
+        elements.push(
+          <line
+            key={`hl-${group.fatherId}-${group.motherId}`}
+            x1={Math.min(midX, leftX)} y1={sibY} x2={Math.max(midX, rightX)} y2={sibY}
+            stroke="#182544"
+            strokeWidth={1.5}
+          />
+        );
 
         for (const cp of childPositions) {
-          const cl = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          cl.setAttribute("x1", String(cp.x));
-          cl.setAttribute("y1", String(sibY));
-          cl.setAttribute("x2", String(cp.x));
-          cl.setAttribute("y2", String(cp.y - SYM));
-          cl.setAttribute("stroke", "#182544");
-          cl.setAttribute("stroke-width", "1.5");
-          svg.appendChild(cl);
+          elements.push(
+            <line
+              key={`cl-${cp.x}-${cp.y}`}
+              x1={cp.x} y1={sibY} x2={cp.x} y2={cp.y - SYM}
+              stroke="#182544"
+              strokeWidth={1.5}
+            />
+          );
         }
       }
     }
+    return elements;
   }, [generations]);
 
-  useEffect(() => {
-    requestAnimationFrame(drawConnections);
-  }, [drawConnections, scale, offset]);
+  const connectionElements = buildConnectionElements();
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -344,10 +337,11 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
       >
         <div style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: "center top", transition: "transform 0.1s ease" }}>
           <svg
-            ref={svgRef}
             xmlns="http://www.w3.org/2000/svg"
             style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}
-          />
+          >
+            {connectionElements}
+          </svg>
 
           {generations.map((gen, gi) => (
             <div key={gi} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
