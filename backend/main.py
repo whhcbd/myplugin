@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -16,21 +16,10 @@ logger = logging.getLogger("plugin-backend")
 
 PLUGINS_DIR = Path(__file__).resolve().parent.parent / "plugins"
 
-app = FastAPI(title="AhaTutor Plugin Backend", version="1.0.0")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.state.plugins_dir = PLUGINS_DIR
-
-
-@app.on_event("startup")
-async def startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.plugins_dir = PLUGINS_DIR
     count = 0
     for entry in sorted(PLUGINS_DIR.iterdir()):
         if not entry.is_dir() or entry.name.startswith("_"):
@@ -48,6 +37,18 @@ async def startup() -> None:
             except Exception as exc:
                 logger.warning("Failed to read %s: %s", manifest_path, exc)
     logger.info("Plugin backend started — %d plugin(s) found in %s", count, PLUGINS_DIR)
+    yield
+
+
+app = FastAPI(title="AhaTutor Plugin Backend", version="1.0.0", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/api/v1/health")

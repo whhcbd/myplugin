@@ -1,0 +1,26 @@
+{
+  "name": "ahatutor-plugins-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AhaTutor Plugin Framework - Monorepo with pnpm workspaces",
+  "scripts": {
+    "install:all": "pnpm install",
+    "build:plugins": "pnpm -r --filter './plugins/*' run build",
+    "build:frontend": "pnpm --filter frontend run build",
+    "build:all": "pnpm run build:plugins && pnpm run build:frontend",
+    "dev:frontend": "pnpm --filter frontend run dev",
+    "dev:backend": "cd backend && uvicorn main:app --reload --host 127.0.0.1 --port 8000",
+    "clean:node_modules": "pnpm -r exec rm -rf node_modules && rm -rf node_modules",
+    "clean:dist": "pnpm -r --filter './plugins/*' exec rm -rf dist"
+  },
+  "keywords": [
+    "ahatutor",
+    "plugins",
+    "education",
+    "genetics",
+    "physics",
+    "a2ui"
+  ],
+  "author": "",
+  "license": "MIT"
+}
