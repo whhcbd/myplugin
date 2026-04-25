@@ -23,14 +23,16 @@ export const pluginModules: Record<string, ComponentLoader> = {
     import("@plugins/genetics-flashcard/src/index").then((m) => m as unknown as PluginModule),
   "genetics-pedigree": () =>
     import("@plugins/genetics-pedigree/src/index").then((m) => m as unknown as PluginModule),
-  "genetics-expression": () =>
-    import("@plugins/genetics-expression/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-heatmap": () =>
+    import("@plugins/genetics-heatmap/src/index").then((m) => m as unknown as PluginModule),
   "genetics-mendel": () =>
     import("@plugins/genetics-mendel/src/index").then((m) => m as unknown as PluginModule),
   "genetics-naturalselection": () =>
     import("@plugins/genetics-naturalselection/src/index").then((m) => m as unknown as PluginModule),
   "genetics-crossover": () =>
     import("@plugins/genetics-crossover/src/index").then((m) => m as unknown as PluginModule),
+  "genetics-volcano": () =>
+    import("@plugins/genetics-volcano/src/index").then((m) => m as unknown as PluginModule),
 };
 
 const registry = new Map<string, RegistryEntry>();

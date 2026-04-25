@@ -1,0 +1,69 @@
+{
+  "id": "genetics-heatmap",
+  "version": "2.0.0",
+  "subject": "genetics",
+  "name": "基因表达热图插件",
+  "keywords": [
+    "基因表达",
+    "热图",
+    "heatmap",
+    "表达矩阵",
+    "Z-score",
+    "标准化",
+    "差异表达",
+    "RNA-seq",
+    "转录组"
+  ],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "GeneExpressionHeatmap",
+      "name": "基因表达热图可视化",
+      "tags": ["基因表达", "热图", "heatmap", "表达矩阵", "差异表达", "Z-score", "标准化"],
+      "props_schema": {
+        "genes": {
+          "type": "string",
+          "default": "[{\"gene\":\"GAPDH\",\"expressionLevels\":[85,90,88,45,42,48]},{\"gene\":\"TP53\",\"expressionLevels\":[120,115,125,60,58,62]},{\"gene\":\"BRCA1\",\"expressionLevels\":[200,195,205,100,98,102]},{\"gene\":\"MYC\",\"expressionLevels\":[150,145,155,180,175,185]},{\"gene\":\"EGFR\",\"expressionLevels\":[95,92,98,140,138,142]},{\"gene\":\"KRAS\",\"expressionLevels\":[110,108,112,85,82,88]}]",
+          "description": "基因数据JSON字符串，每个对象含gene（基因名，如GAPDH、TP53）和expressionLevels（各样本的表达量数组）"
+        },
+        "samples": {
+          "type": "string",
+          "default": "[{\"name\":\"Tumor_01\",\"group\":\"tumor\"},{\"name\":\"Tumor_02\",\"group\":\"tumor\"},{\"name\":\"Tumor_03\",\"group\":\"tumor\"},{\"name\":\"Normal_01\",\"group\":\"normal\"},{\"name\":\"Normal_02\",\"group\":\"normal\"},{\"name\":\"Normal_03\",\"group\":\"normal\"}]",
+          "description": "样本数据JSON字符串，每个对象含name（样本名）和可选group（分组，如tumor/normal）"
+        },
+        "showDendrogram": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否显示聚类树状图（当前版本暂不支持，预留参数）"
+        },
+        "showAnnotation": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示样本分组注释条（顶部彩色条）"
+        }
+      },
+      "a2ui_hint": "GeneExpressionHeatmap 组件是生物学标准的基因表达热图工具，用于展示高维表达矩阵。LLM通过 properties 传入 genes（JSON字符串，包含基因名和表达量数组）和 samples（JSON字符串，包含样本名和分组信息）。组件自动执行行方向Z-score标准化，使用蓝-白-红发散色阶（色盲友好），支持点击单元格查看详细数值。适合展示RNA-seq、芯片数据等转录组表达矩阵。",
+      "expresses": [
+        "基因×样本表达矩阵热图",
+        "行方向Z-score标准化",
+        "蓝-白-红发散色阶（色盲友好）",
+        "样本分组注释条（肿瘤/正常）",
+        "Color Bar色阶图例",
+        "单元格交互详情（原始值、Z-score）",
+        "共表达模式识别",
+        "样本间相似性比较"
+      ],
+      "educational_use": "帮助学生理解基因表达谱概念、标准化必要性、热图解读方法；适用于高中生物竞赛、大学分子生物学、生物信息学课程；展示肿瘤vs正常样本的差异表达基因模式",
+      "cannot_express": [
+        "层次聚类树状图（dendrogram）",
+        "实时统计检验（p值、FDR）",
+        "多数据集批次效应校正",
+        "基因本体论（GO）富集分析",
+        "单个基因的表达趋势（应使用箱线图或折线图）",
+        "超过100个基因的大规模热图（性能限制）"
+      ]
+    }
+  ]
+}

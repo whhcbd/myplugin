@@ -248,6 +248,10 @@ export default function NaturalSelectionSimulator({ node }: { node: A2UINode }) 
   usePopulationCanvas(popCanvasRef, population, envType);
   useFreqChart(freqCanvasRef, history);
 
+  useEffect(() => {
+    return () => { runRef.current = false; };
+  }, []);
+
   useEffect(() => { setPopSize(parseNum(props.populationSize, 100)); }, [props.populationSize]);
   useEffect(() => { setInitFreq(parseNum(props.initialFreqA, 0.5)); }, [props.initialFreqA]);
   useEffect(() => { setEnvType(parseStr(props.environmentType, "dark")); }, [props.environmentType]);

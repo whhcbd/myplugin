@@ -16,6 +16,24 @@ function parseBool(val: unknown, fb: boolean): boolean {
   return fb;
 }
 
+function Spinner() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let frame = 0;
+    let deg = 0;
+    const animate = () => {
+      deg = (deg + 6) % 360;
+      el.style.transform = `rotate(${deg}deg)`;
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return <div ref={ref} style={{ width: 40, height: 40, border: "4px solid #e5e7eb", borderTopColor: "#182544", borderRadius: "50%", margin: "0 auto" }} />;
+}
+
 interface SimResult {
   genotype: string;
   count: number;
@@ -180,22 +198,29 @@ export default function MendelSimulator({ node }: { node: A2UINode }) {
   const [p1, setP1] = useState(parseStr(props.parent1Genotype, "Aa"));
   const [p2, setP2] = useState(parseStr(props.parent2Genotype, "Aa"));
   const [simCount, setSimCount] = useState(parseNum(props.simulationCount, 1000));
-  const interactive = parseBool(props.interactive, true);
+  const [interactive, setInteractive] = useState(parseBool(props.interactive, true));
 
   const [results, setResults] = useState<SimResult[]>([]);
   const [chiSq, setChiSq] = useState<ChiSquare | null>(null);
   const [simulating, setSimulating] = useState(false);
   const [speed, setSpeed] = useState<"slow" | "fast" | "instant">("fast");
+  const cancelledRef = useRef(false);
 
   const chartRef = useRef<HTMLCanvasElement>(null);
   useGroupedBarChart(chartRef, results);
 
+  useEffect(() => {
+    return () => { cancelledRef.current = true; };
+  }, []);
+
   useEffect(() => { setP1(parseStr(props.parent1Genotype, "Aa")); }, [props.parent1Genotype]);
   useEffect(() => { setP2(parseStr(props.parent2Genotype, "Aa")); }, [props.parent2Genotype]);
   useEffect(() => { setSimCount(parseNum(props.simulationCount, 1000)); }, [props.simulationCount]);
+  useEffect(() => { setInteractive(parseBool(props.interactive, true)); }, [props.interactive]);
 
   const runSim = useCallback(async () => {
     if (simulating) return;
+    cancelledRef.current = false;
     setSimulating(true);
     setResults([]);
     setChiSq(null);
@@ -208,6 +233,7 @@ export default function MendelSimulator({ node }: { node: A2UINode }) {
     const delay = speed === "instant" ? 0 : speed === "fast" ? 10 : 50;
 
     for (let i = 0; i < total; i++) {
+      if (cancelledRef.current) { setSimulating(false); return; }
       const a1 = g1[Math.floor(Math.random() * g1.length)];
       const a2 = g2[Math.floor(Math.random() * g2.length)];
       const child = normalizeGt(a1 + a2);
@@ -273,12 +299,10 @@ export default function MendelSimulator({ node }: { node: A2UINode }) {
       fontSize: "0.9rem", fontWeight: 600, color: sig ? "#8b3a3a" : "#5a7752",
     }),
     empty: { textAlign: "center" as const, padding: "60px 20px", color: "#9ca3af" },
-    spinner: { width: 40, height: 40, border: "4px solid #e5e7eb", borderTopColor: "#182544", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto" },
   };
 
   return (
     <div style={S.host}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={S.box}>
         <h2 style={S.title}>🧬 孟德尔实验模拟器</h2>
 
@@ -327,7 +351,7 @@ export default function MendelSimulator({ node }: { node: A2UINode }) {
 
             {results.length > 0 ? (
               <div style={S.resultBox}>
-                {simulating && <div style={S.spinner} />}
+                {simulating && <Spinner />}
                 <h3 style={S.sectionTitle}>📊 模拟结果</h3>
 
                 <table style={S.table}>

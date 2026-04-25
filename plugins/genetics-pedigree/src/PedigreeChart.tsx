@@ -87,6 +87,98 @@ function toRoman(n: number): string {
   return r;
 }
 
+// 基因型推断算法
+function inferGenotype(
+  phenotype: Phenotype,
+  gender: Gender,
+  inheritanceMode: InheritanceMode,
+  parents?: { father?: Individual; mother?: Individual }
+): string {
+  // 常染色体隐性遗传（AR）
+  if (inheritanceMode === "AR") {
+    if (phenotype === "affected") return "aa";
+    if (phenotype === "carrier") return "Aa";
+    if (phenotype === "normal") {
+      // 如果父母都是携带者，正常个体可能是 AA 或 Aa
+      if (parents?.father?.genotype === "Aa" && parents?.mother?.genotype === "Aa") {
+        return "A_"; // 待定
+      }
+      return "A_"; // 默认待定
+    }
+  }
+
+  // 常染色体显性遗传（AD）
+  if (inheritanceMode === "AD") {
+    if (phenotype === "affected") return "A_"; // Aa 或 AA
+    if (phenotype === "normal") return "aa";
+  }
+
+  // X连锁隐性遗传（XR）
+  if (inheritanceMode === "XR") {
+    if (gender === "male") {
+      if (phenotype === "affected") return "X^a Y";
+      if (phenotype === "normal") return "X^A Y";
+    } else {
+      if (phenotype === "affected") return "X^a X^a";
+      if (phenotype === "carrier") return "X^A X^a";
+      if (phenotype === "normal") return "X^A X^-"; // 待定
+    }
+  }
+
+  // X连锁显性遗传（XD）
+  if (inheritanceMode === "XD") {
+    if (gender === "male") {
+      if (phenotype === "affected") return "X^A Y";
+      if (phenotype === "normal") return "X^a Y";
+    } else {
+      if (phenotype === "affected") return "X^A X^-"; // 待定
+      if (phenotype === "normal") return "X^a X^a";
+    }
+  }
+
+  return "?";
+}
+
+// 概率计算算法（核心：条件概率）
+function calculateCarrierProbability(
+  individual: Individual,
+  inheritanceMode: InheritanceMode,
+  parents?: { father?: Individual; mother?: Individual }
+): number | null {
+  // 只计算表型正常个体的携带者概率
+  if (individual.phenotype !== "normal") return null;
+
+  // 常染色体隐性遗传（AR）
+  if (inheritanceMode === "AR") {
+    // 如果父母都是 Aa
+    if (parents?.father?.genotype === "Aa" && parents?.mother?.genotype === "Aa") {
+      // 子代理论比例：AA : Aa : aa = 1 : 2 : 1
+      // 表型正常（排除 aa）：AA : Aa = 1 : 2
+      // 所以 P(Aa | 正常) = 2/3
+      return 2 / 3;
+    }
+    // 如果一方是 Aa，一方是 AA
+    if (
+      (parents?.father?.genotype === "Aa" && parents?.mother?.genotype === "AA") ||
+      (parents?.father?.genotype === "AA" && parents?.mother?.genotype === "Aa")
+    ) {
+      // 子代：AA : Aa = 1 : 1
+      return 1 / 2;
+    }
+  }
+
+  // X连锁隐性遗传（XR）
+  if (inheritanceMode === "XR" && individual.gender === "female") {
+    // 如果父亲正常（X^A Y），母亲是携带者（X^A X^a）
+    if (parents?.father?.genotype === "X^A Y" && parents?.mother?.genotype === "X^A X^a") {
+      // 女儿：X^A X^A : X^A X^a = 1 : 1
+      return 1 / 2;
+    }
+  }
+
+  return null;
+}
+
 function getAllIndividuals(gens: Generation[]): Individual[] {
   return gens.flatMap((g) => g.individuals);
 }
@@ -131,6 +223,11 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
   const initMode = parseStr(props.inheritanceMode, "unknown") as InheritanceMode;
   const initGens = parseGenerations(parseStr(props.generations, ""));
 
+  // 新增：概率显示开关
+  const initShowProb = props.showProbabilities === true || props.showProbabilities === "true";
+  // 新增：口诀显示开关
+  const initShowMnemonics = props.showMnemonics === true || props.showMnemonics === "true";
+
   const [trait, setTrait] = useState(initTrait);
   const [inheritanceMode, setInheritanceMode] = useState(initMode);
   const [generations, setGenerations] = useState(initGens);
@@ -138,10 +235,14 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [showGenotype, setShowGenotype] = useState(false);
+  const [showProbabilities, setShowProbabilities] = useState(initShowProb);
+  const [showMnemonics, setShowMnemonics] = useState(initShowMnemonics);
 
   useEffect(() => { setTrait(initTrait); }, [initTrait]);
   useEffect(() => { setInheritanceMode(initMode); }, [initMode]);
   useEffect(() => { setGenerations(initGens); setSelected(null); }, [initGens]);
+  useEffect(() => { setShowProbabilities(initShowProb); }, [initShowProb]);
+  useEffect(() => { setShowMnemonics(initShowMnemonics); }, [initShowMnemonics]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isPanning = useRef(false);
@@ -176,15 +277,35 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
       const p1 = positions.get(ind.id);
       const p2 = positions.get(ind.spouseId);
       if (!p1 || !p2) continue;
-      elements.push(
-        <line
-          key={`spouse-${key}`}
-          x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
-          stroke={ind.matingType === "consanguineous" ? "#ef4444" : "#182544"}
-          strokeWidth={ind.matingType === "consanguineous" ? 2 : 1.5}
-          strokeDasharray={ind.matingType === "divorced" || ind.matingType === "separated" ? "6 3" : undefined}
-        />
-      );
+
+      // 近亲婚配：双横线（教材规范）
+      if (ind.matingType === "consanguineous") {
+        const offset = 2;
+        elements.push(
+          <g key={`spouse-${key}`}>
+            <line
+              x1={p1.x} y1={p1.y - offset} x2={p2.x} y2={p2.y - offset}
+              stroke="#ef4444"
+              strokeWidth={1.5}
+            />
+            <line
+              x1={p1.x} y1={p1.y + offset} x2={p2.x} y2={p2.y + offset}
+              stroke="#ef4444"
+              strokeWidth={1.5}
+            />
+          </g>
+        );
+      } else {
+        elements.push(
+          <line
+            key={`spouse-${key}`}
+            x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
+            stroke="#182544"
+            strokeWidth={1.5}
+            strokeDasharray={ind.matingType === "divorced" || ind.matingType === "separated" ? "6 3" : undefined}
+          />
+        );
+      }
     }
 
     for (const group of groups) {
@@ -315,8 +436,71 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
           <button style={btnStyle(false)} onClick={() => setScale((s) => Math.max(0.3, s * 0.8))}>-</button>
           <button style={btnStyle(false)} onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}>O</button>
           <button style={btnStyle(showGenotype)} onClick={() => setShowGenotype((g) => !g)}>基因型</button>
+          <button style={btnStyle(showProbabilities)} onClick={() => setShowProbabilities((p) => !p)}>概率</button>
+          <button style={btnStyle(showMnemonics)} onClick={() => setShowMnemonics((m) => !m)}>口诀</button>
         </div>
       </div>
+
+      {/* 性状说明卡片 - 教材规范 */}
+      {trait && inheritanceMode !== "unknown" && (
+        <div style={{
+          background: "#fff",
+          borderRadius: 8,
+          padding: 12,
+          marginBottom: 10,
+          border: "1px solid #e5e7eb"
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#182544", marginBottom: 6 }}>
+            性状说明
+          </div>
+          <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.6 }}>
+            <div style={{ marginBottom: 4 }}>
+              <strong style={{ color: "#182544" }}>性状：</strong>{trait}（{MODE_LABELS[inheritanceMode]}）
+            </div>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <svg width={16} height={16}>
+                  <rect x={0} y={0} width={16} height={16} fill="#182544" stroke="#182544" strokeWidth={1.5} />
+                </svg>
+                <span>■/● = 患者</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <svg width={16} height={16}>
+                  <circle cx={8} cy={8} r={7} fill="#fff" stroke="#182544" strokeWidth={1.5} />
+                  <circle cx={8} cy={8} r={3.5} fill="#775a19" />
+                </svg>
+                <span>⊙ = 携带者（杂合子）</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <svg width={16} height={16}>
+                  <rect x={0} y={0} width={16} height={16} fill="#fff" stroke="#182544" strokeWidth={1.5} />
+                </svg>
+                <span>□/○ = 正常</span>
+              </div>
+            </div>
+            {inheritanceMode === "AR" && (
+              <div style={{ marginTop: 6, fontSize: 10, color: "#775a19" }}>
+                💡 基因型：AA/Aa = 正常，aa = 患者，Aa = 携带者
+              </div>
+            )}
+            {inheritanceMode === "AD" && (
+              <div style={{ marginTop: 6, fontSize: 10, color: "#775a19" }}>
+                💡 基因型：AA/Aa = 患者，aa = 正常
+              </div>
+            )}
+            {inheritanceMode === "XR" && (
+              <div style={{ marginTop: 6, fontSize: 10, color: "#775a19" }}>
+                💡 基因型：X^A X^A / X^A X^a / X^A Y = 正常，X^a X^a / X^a Y = 患者，X^A X^a = 女性携带者
+              </div>
+            )}
+            {inheritanceMode === "XD" && (
+              <div style={{ marginTop: 6, fontSize: 10, color: "#775a19" }}>
+                💡 基因型：X^A X^A / X^A X^a / X^A Y = 患者，X^a X^a / X^a Y = 正常
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div
         ref={containerRef}
@@ -351,6 +535,22 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
               <div style={{ display: "flex", gap: 0 }}>
                 {gen.individuals.map((ind) => {
                   const isSelected = selected?.id === ind.id;
+
+                  // 获取父母信息用于基因型推断和概率计算
+                  const father = ind.parents?.father ? indMap.get(ind.parents.father) : undefined;
+                  const mother = ind.parents?.mother ? indMap.get(ind.parents.mother) : undefined;
+
+                  // 推断基因型（如果没有提供）
+                  const displayGenotype = ind.genotype || inferGenotype(
+                    ind.phenotype,
+                    ind.gender,
+                    inheritanceMode,
+                    { father, mother }
+                  );
+
+                  // 计算概率
+                  const probability = calculateCarrierProbability(ind, inheritanceMode, { father, mother });
+
                   return (
                     <div
                       key={ind.id}
@@ -364,8 +564,17 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
                         position: "relative",
                       }}
                     >
+                      {/* 先证者标记：向上箭头（教材规范） */}
                       {ind.isProband && (
-                        <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderBottom: "8px solid #3b82f6", marginBottom: 2 }} />
+                        <div style={{
+                          position: "absolute",
+                          bottom: -12,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          fontSize: 14,
+                          color: "#3b82f6",
+                          fontWeight: "bold"
+                        }}>↑</div>
                       )}
                       <svg width={SYM * 2} height={SYM * 2} style={{ overflow: "visible" }}>
                         {ind.gender === "male" ? (
@@ -386,14 +595,16 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
                             strokeDasharray={ind.isDeceased ? "4 2" : ind.isMiscarriage ? "2 2" : undefined}
                           />
                         )}
+                        {/* 携带者符号：中心实心点（教材规范） */}
                         {ind.phenotype === "carrier" && (
-                          <circle cx={SYM} cy={SYM} r={4} fill="#182544" />
+                          <circle cx={SYM} cy={SYM} r={5} fill="#775a19" />
                         )}
                         {ind.phenotype === "uncertain" && (
                           <text x={SYM} y={SYM + 4} textAnchor="middle" fontSize={12} fill="#182544">?</text>
                         )}
+                        {/* 已故标记：斜杠（教材规范） */}
                         {ind.isDeceased && (
-                          <line x1={-2} y1={SYM * 2 + 2} x2={SYM * 2 + 2} y2={-2} stroke="#182544" strokeWidth={1} />
+                          <line x1={-2} y1={SYM * 2 + 2} x2={SYM * 2 + 2} y2={-2} stroke="#6b7280" strokeWidth={1.5} />
                         )}
                       </svg>
                       {ind.label && (
@@ -402,8 +613,31 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
                       {ind.age && (
                         <div style={{ fontSize: 9, color: "#9ca3af" }}>{ind.age}</div>
                       )}
-                      {showGenotype && (
-                        <div style={{ fontSize: 9, color: "#775a19", fontFamily: "monospace" }}>{ind.genotype || "?"}</div>
+                      {/* 基因型显示 - 增强版 */}
+                      {showGenotype && displayGenotype && (
+                        <div style={{
+                          fontSize: 10,
+                          color: displayGenotype.includes("_") || displayGenotype.includes("-") ? "#9ca3af" : "#775a19",
+                          fontFamily: "monospace",
+                          fontWeight: 600,
+                          marginTop: 2,
+                          background: displayGenotype.includes("_") || displayGenotype.includes("-") ? "#f3f4f6" : "transparent",
+                          padding: displayGenotype.includes("_") || displayGenotype.includes("-") ? "1px 4px" : "0",
+                          borderRadius: 3
+                        }}>
+                          {displayGenotype}
+                        </div>
+                      )}
+                      {/* 概率显示 - 新增功能 */}
+                      {showProbabilities && probability !== null && (
+                        <div style={{
+                          fontSize: 9,
+                          color: "#ef4444",
+                          fontWeight: 600,
+                          marginTop: 2
+                        }}>
+                          ({probability === 2/3 ? "2/3" : probability === 1/2 ? "1/2" : probability.toFixed(2)})
+                        </div>
                       )}
                       {ind.count && ind.count > 1 && (
                         <div style={{ fontSize: 10, fontWeight: 600, color: "#182544" }}>{ind.count}</div>
@@ -435,28 +669,112 @@ export function PedigreeChart({ node }: { node: A2UINode }) {
         ))}
       </div>
 
-      <div style={{ marginTop: 10, padding: 10, background: "#fff", borderRadius: 6, border: "1px solid #e5e7eb", display: "flex", flexWrap: "wrap", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <svg width={18} height={18}><rect x={1} y={1} width={16} height={16} fill="#fff" stroke="#182544" strokeWidth={1.5} /></svg>
-          <span style={{ fontSize: 11, color: "#6b7280" }}>正常男性</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <svg width={18} height={18}><circle cx={9} cy={9} r={8} fill="#fff" stroke="#182544" strokeWidth={1.5} /></svg>
-          <span style={{ fontSize: 11, color: "#6b7280" }}>正常女性</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <svg width={18} height={18}><rect x={1} y={1} width={16} height={16} fill="#182544" stroke="#182544" strokeWidth={1.5} /></svg>
-          <span style={{ fontSize: 11, color: "#6b7280" }}>患病</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <svg width={18} height={18}><circle cx={9} cy={9} r={8} fill="#fff" stroke="#182544" strokeWidth={1.5} /><circle cx={9} cy={9} r={3} fill="#182544" /></svg>
-          <span style={{ fontSize: 11, color: "#6b7280" }}>携带者</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 20, height: 0, borderTop: "1.5px solid #182544" }} />
-          <span style={{ fontSize: 11, color: "#6b7280" }}>配偶/亲子</span>
+      {/* 图例面板 - 教材规范符号 */}
+      <div style={{ marginTop: 10, padding: 12, background: "#fff", borderRadius: 8, border: "1px solid #e5e7eb" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#182544", marginBottom: 8 }}>符号图例</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+          {/* 基础符号 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={20} height={20}><rect x={2} y={2} width={16} height={16} fill="#fff" stroke="#182544" strokeWidth={1.5} /></svg>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>正常男性</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={20} height={20}><circle cx={10} cy={10} r={8} fill="#fff" stroke="#182544" strokeWidth={1.5} /></svg>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>正常女性</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={20} height={20}><rect x={2} y={2} width={16} height={16} fill="#182544" stroke="#182544" strokeWidth={1.5} /></svg>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>患病男性</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={20} height={20}><circle cx={10} cy={10} r={8} fill="#182544" stroke="#182544" strokeWidth={1.5} /></svg>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>患病女性</span>
+          </div>
+
+          {/* 携带者符号 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={20} height={20}>
+              <circle cx={10} cy={10} r={8} fill="#fff" stroke="#182544" strokeWidth={1.5} />
+              <circle cx={10} cy={10} r={4} fill="#775a19" />
+            </svg>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>携带者（⊙）</span>
+          </div>
+
+          {/* 先证者标记 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ position: "relative", width: 20, height: 20 }}>
+              <svg width={20} height={16} style={{ position: "absolute", top: 4 }}>
+                <rect x={2} y={0} width={16} height={16} fill="#182544" stroke="#182544" strokeWidth={1.5} />
+              </svg>
+              <div style={{ position: "absolute", bottom: -2, left: "50%", transform: "translateX(-50%)", fontSize: 12, color: "#3b82f6", fontWeight: "bold" }}>↑</div>
+            </div>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>先证者</span>
+          </div>
+
+          {/* 已故标记 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={20} height={20}>
+              <rect x={2} y={2} width={16} height={16} fill="#fff" stroke="#182544" strokeWidth={1.5} />
+              <line x1={1} y1={19} x2={19} y2={1} stroke="#6b7280" strokeWidth={1.5} />
+            </svg>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>已故</span>
+          </div>
+
+          {/* 关系连线 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 24, height: 2, background: "#182544" }} />
+            <span style={{ fontSize: 11, color: "#6b7280" }}>婚配关系</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ position: "relative", width: 24, height: 8 }}>
+              <div style={{ position: "absolute", top: 2, width: 24, height: 1.5, background: "#ef4444" }} />
+              <div style={{ position: "absolute", top: 5, width: 24, height: 1.5, background: "#ef4444" }} />
+            </div>
+            <span style={{ fontSize: 11, color: "#6b7280" }}>近亲婚配</span>
+          </div>
         </div>
       </div>
+
+      {/* 解题口诀卡片 - 教学辅助 */}
+      {showMnemonics && (
+        <div style={{ marginTop: 10, padding: 12, background: "#fff", borderRadius: 8, border: "1px solid #e5e7eb" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#182544", marginBottom: 8 }}>💡 解题口诀</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* 隐性遗传口诀 */}
+            <div style={{ padding: 10, background: "#fef3c7", borderRadius: 6, borderLeft: "3px solid #f59e0b" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#92400e", marginBottom: 4 }}>隐性遗传判断</div>
+              <div style={{ fontSize: 10, color: "#78350f", lineHeight: 1.6 }}>
+                <div>• <strong>无中生有为隐性</strong>（父母正常，子女患病）</div>
+                <div>• <strong>隐性遗传看女病</strong>（看女性患者）</div>
+                <div>• <strong>女病男正非伴性</strong>（女病父正 → 常染色体）</div>
+              </div>
+            </div>
+
+            {/* 显性遗传口诀 */}
+            <div style={{ padding: 10, background: "#dbeafe", borderRadius: 6, borderLeft: "3px solid #3b82f6" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#1e40af", marginBottom: 4 }}>显性遗传判断</div>
+              <div style={{ fontSize: 10, color: "#1e3a8a", lineHeight: 1.6 }}>
+                <div>• <strong>有中生无为显性</strong>（父母患病，子女正常）</div>
+                <div>• <strong>显性遗传看男病</strong>（看男性患者）</div>
+                <div>• <strong>男病女正非伴性</strong>（男病母正 → 常染色体）</div>
+              </div>
+            </div>
+
+            {/* 概率计算口诀 */}
+            <div style={{ padding: 10, background: "#fee2e2", borderRadius: 6, borderLeft: "3px solid #ef4444" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#991b1b", marginBottom: 4 }}>概率计算要点</div>
+              <div style={{ fontSize: 10, color: "#7f1d1d", lineHeight: 1.6 }}>
+                <div>• <strong>表型正常时，Aa 概率为 2/3</strong></div>
+                <div>• 原理：Aa × Aa → AA:Aa:aa = 1:2:1</div>
+                <div>• 排除 aa 后：AA:Aa = 1:2，所以 P(Aa) = 2/3</div>
+                <div style={{ marginTop: 4, color: "#ef4444", fontWeight: 600 }}>
+                  ⚠️ 常见错误：忽略"表型正常"前提，误写为 1/2
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selected && (
         <>

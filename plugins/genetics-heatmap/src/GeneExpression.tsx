@@ -178,10 +178,11 @@ export default function GeneExpression({ node }: { node: A2UINode }) {
 
   const rawGenes = parseStr(props.genes, "");
   const rawConds = parseStr(props.conditions, "");
-  const interactive = parseBool(props.interactive, true);
+  const initInteractive = parseBool(props.interactive, true);
 
   const [genes, setGenes] = useState<GeneData[]>(() => parseGenes(rawGenes));
-  const [conditions] = useState<Condition[]>(() => parseConditions(rawConds));
+  const [conditions, setConditions] = useState<Condition[]>(() => parseConditions(rawConds));
+  const [interactive, setInteractive] = useState(initInteractive);
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const [selectedGene, setSelectedGene] = useState<{ gene: string; condIdx: number } | null>(null);
   const [lacMode, setLacMode] = useState(false);
@@ -192,6 +193,10 @@ export default function GeneExpression({ node }: { node: A2UINode }) {
   useEffect(() => {
     setGenes(parseGenes(rawGenes));
   }, [rawGenes]);
+  useEffect(() => {
+    setConditions(parseConditions(rawConds));
+  }, [rawConds]);
+  useEffect(() => { setInteractive(initInteractive); }, [initInteractive]);
 
   useLineChart(lineCanvasRef, genes, conditions, selectedGene);
 

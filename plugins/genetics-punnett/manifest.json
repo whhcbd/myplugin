@@ -1,6 +1,6 @@
 {
   "id": "genetics-punnett",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "subject": "genetics",
   "name": "孟德尔方格图插件",
   "keywords": [
@@ -13,7 +13,12 @@
     "隐性",
     "杂合",
     "纯合",
-    "旁氏棋盘"
+    "旁氏棋盘",
+    "分离定律",
+    "自由组合",
+    "伴性遗传",
+    "卡方检验",
+    "概率"
   ],
   "entry": {
     "js": "dist/index.esm.js"
@@ -22,49 +27,99 @@
     {
       "component_id": "PunnettSquare",
       "name": "孟德尔方格图（旁氏棋盘）",
-      "tags": ["孟德尔", "方格图", "杂交", "基因型", "表型", "旁氏棋盘"],
+      "tags": ["孟德尔", "方格图", "杂交", "基因型", "表型", "旁氏棋盘", "分离定律", "自由组合"],
       "props_schema": {
         "parent1Genotype": {
           "type": "string",
           "default": "Aa",
-          "description": "亲本1基因型，如 Aa、AaBb"
+          "description": "父本（♂）基因型，如 Aa、AaBb、aabb"
         },
         "parent2Genotype": {
           "type": "string",
           "default": "Aa",
-          "description": "亲本2基因型，如 aa、AaBb"
+          "description": "母本（♀）基因型，如 Aa、AaBb、aabb"
         },
         "trait": {
           "type": "string",
           "default": "",
-          "description": "性状名称，如 豌豆颜色"
+          "description": "性状名称，如 豌豆茎高、豌豆颜色"
+        },
+        "fatherLabel": {
+          "type": "string",
+          "default": "父本",
+          "description": "父本显示标签"
+        },
+        "motherLabel": {
+          "type": "string",
+          "default": "母本",
+          "description": "母本显示标签"
+        },
+        "fatherPhenotype": {
+          "type": "string",
+          "default": "",
+          "description": "父本表型描述，如 高茎"
+        },
+        "motherPhenotype": {
+          "type": "string",
+          "default": "",
+          "description": "母本表型描述，如 矮茎"
         },
         "showPhenotype": {
           "type": "boolean",
           "default": true,
-          "description": "是否显示表型分析（表型比例、模拟实验）"
+          "description": "是否显示表型标注、比例统计和颜色区分"
         },
         "interactive": {
           "type": "boolean",
           "default": true,
           "description": "是否允许点击格子查看详情和运行模拟实验"
+        },
+        "traitDefinitions": {
+          "type": "array",
+          "default": [],
+          "description": "性状定义数组。每项包含 name(性状名)、dominantTrait(显性表型)、recessiveTrait(隐性表型)、incompleteDominance(是否不完全显性)、intermediateTrait(中间表型)。如 [{name:'茎高',dominantTrait:'高茎',recessiveTrait:'矮茎'}]"
+        },
+        "linkageInfo": {
+          "type": "object",
+          "default": { "isLinked": false },
+          "description": "连锁遗传信息。{isLinked:true/false, recombinationFrequency:0~50}"
+        },
+        "observedData": {
+          "type": "array",
+          "default": [],
+          "description": "实际观察数据数组，用于卡方检验。按表型排序，如 [75,25]"
+        },
+        "sexLinked": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否为伴性遗传（基因在X染色体上），会显示伴性遗传说明"
+        },
+        "showTips": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示教学辅助提示（核心原理、易错点、适用范围）"
         }
       },
-      "a2ui_hint": "PunnettSquare 组件可视化孟德尔杂交方格图。LLM只需通过 properties 传入 parent1Genotype 和 parent2Genotype（如 Aa × Aa）即可。组件已内置网格渲染、基因型/表型比例计算、模拟实验按钮和点击交互，不需要额外生成控件。支持单因子（Aa）和多因子（AaBb）杂交。",
+      "a2ui_hint": "PunnettSquare 组件是完整的孟德尔方格图教学工具，已内置所有交互控件（格子点击、模拟实验按钮、次数选择），不需要额外生成控件。LLM只需通过 properties 传入 parent1Genotype 和 parent2Genotype（如 Aa x Aa）即可。支持：(1)单因子/双因子杂交；(2)通过 traitDefinitions 定义性状名称（如 [{name:'茎高',dominantTrait:'高茎',recessiveTrait:'矮茎'}]）；(3)通过 observedData 进行卡方检验；(4)通过 fatherPhenotype/motherPhenotype 标注亲本表型；(5)伴性遗传标注(sexLinked=true)；(6)连锁遗传提示(linkageInfo)。组件自动计算基因型/表型比例、概率拆解、模拟实验对比。当学生问及孟德尔遗传、杂交、方格图时优先调用。",
       "expresses": [
-        "杂交后代基因型比例",
-        "杂交后代表型比例",
-        "单因子杂交方格图",
-        "双因子杂交方格图",
-        "显性与隐性性状分布"
+        "杂交后代基因型比例与概率",
+        "杂交后代表型比例与概率",
+        "单因子杂交方格图（2x2）",
+        "双因子杂交方格图（4x4）",
+        "显性与隐性性状分布",
+        "配子概率与乘法原理",
+        "卡方检验对比实际与理论",
+        "随机受精模拟实验",
+        "不完全显性/共显性",
+        "伴性遗传标注"
       ],
-      "educational_use": "帮助学生理解孟德尔遗传定律，通过方格图直观展示杂交后代的基因型和表型分离比",
+      "educational_use": "覆盖初高中遗传学课标：单因子杂交3:1分离比、双因子杂交9:3:3:1自由组合比、概率计算原理、卡方检验验证、模拟实验对比理论与实际。支持性状自定义命名、伴性遗传标注、连锁提示。",
       "cannot_express": [
-        "基因连锁分析",
-        "染色体交叉互换",
-        "多基因遗传",
-        "伴性遗传",
-        "数量性状遗传"
+        "基因连锁的具体重组率计算",
+        "染色体交叉互换的分子机制",
+        "数量性状多基因遗传",
+        "细胞质遗传（母系遗传）",
+        "表观遗传现象"
       ]
     }
   ]

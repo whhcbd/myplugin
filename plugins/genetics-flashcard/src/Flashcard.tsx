@@ -31,8 +31,12 @@ const DEFAULT_CARDS: FlashcardItem[] = [
 
 function parseCards(props: Record<string, unknown>): FlashcardItem[] {
   const rawCards = props.cards;
-  if (Array.isArray(rawCards) && rawCards.length > 0) {
-    return rawCards.map((c: any) => ({
+  let parsed: unknown = rawCards;
+  if (typeof rawCards === "string") {
+    try { parsed = JSON.parse(rawCards); } catch { parsed = null; }
+  }
+  if (Array.isArray(parsed) && parsed.length > 0) {
+    return (parsed as any[]).map((c: any) => ({
       front: typeof c.front === "string" ? c.front : "",
       back: typeof c.back === "string" ? c.back : "",
       category: typeof c.category === "string" ? c.category : undefined,
@@ -57,7 +61,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 export function Flashcard({ node }: { node: A2UINode }) {
   const props = node.properties ?? {};
-  const initCards = useMemo(() => parseCards(props), [props]);
+  const initCards = useMemo(() => parseCards(props), [props.cards, props.front, props.back, props.category]);
   const initInteractive = parseBool(props.interactive, true);
 
   const [cards, setCards] = useState<FlashcardItem[]>(initCards);

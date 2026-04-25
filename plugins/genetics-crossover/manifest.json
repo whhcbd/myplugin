@@ -1,6 +1,6 @@
 {
   "id": "genetics-crossover",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "subject": "genetics",
   "name": "交叉互换图谱插件",
   "keywords": [
@@ -12,7 +12,11 @@
     "交叉点",
     "减数分裂",
     "基因定位",
-    "连锁图谱"
+    "连锁图谱",
+    "重组频率",
+    "等位基因",
+    "配子",
+    "四分体"
   ],
   "entry": {
     "js": "dist/index.esm.js"
@@ -21,7 +25,7 @@
     {
       "component_id": "CrossoverMap",
       "name": "染色体交叉互换图谱",
-      "tags": ["交叉互换", "染色体", "连锁", "重组", "基因定位", "着丝粒"],
+      "tags": ["交叉互换", "染色体", "连锁", "重组", "基因定位", "着丝粒", "等位基因", "配子", "减数分裂"],
       "props_schema": {
         "chromosomeId": {
           "type": "string",
@@ -31,78 +35,81 @@
         "chromosomeLength": {
           "type": "number",
           "default": 100,
+          "min": 10,
+          "max": 500,
           "description": "染色体遗传长度（cM）"
         },
-        "genes": {
+        "alleles": {
           "type": "array",
           "default": [
-            { "name": "A", "position": 10, "color": "#2563eb" },
-            { "name": "B", "position": 30, "color": "#16a34a" },
-            { "name": "C", "position": 55, "color": "#7c3aed" },
-            { "name": "D", "position": 75, "color": "#ea580c" }
+            { "gene": "A", "position": 15, "paternalAllele": "A", "maternalAllele": "a" },
+            { "gene": "B", "position": 40, "paternalAllele": "B", "maternalAllele": "b" },
+            { "gene": "D", "position": 75, "paternalAllele": "D", "maternalAllele": "d" }
           ],
-          "description": "基因位点数组，每项含 name、position（cM）、color（可选）"
+          "description": "等位基因对数组，每项含 gene（基因名）、position（cM位置）、paternalAllele（父源等位基因，大写显性）、maternalAllele（母源等位基因，小写隐性）。同源位置上下对齐显示。"
         },
         "crossoverPoints": {
           "type": "array",
           "default": [
-            { "position": 20, "label": "交叉点1", "type": "single", "confidence": "high" },
-            { "position": 65, "label": "交叉点2", "type": "single", "confidence": "medium" }
+            { "position": 55, "label": "交叉点1", "type": "single" }
           ],
-          "description": "交叉点数组，每项含 position（cM）、label（可选）、type（可选 single/double/multiple）、confidence（可选 high/medium/low）"
+          "description": "交叉点数组，每项含 position（cM位置）、label（可选标签）、type（可选 single/double/multiple）。交叉点以X形标记显示在非姐妹染色单体之间。"
         },
         "centromerePosition": {
-          "type": "object",
-          "default": { "position": 48 },
-          "description": "着丝粒位置信息，含 position（cM），null 则默认为染色体中间"
-        },
-        "bands": {
-          "type": "array",
-          "default": [],
-          "description": "染色体带型数组，每项含 start、end、name、type（G-dark/G-light/R-dark/R-light）"
+          "type": "number",
+          "default": 48,
+          "min": 5,
+          "max": 95,
+          "description": "着丝粒位置（cM），在两条同源染色体上对称显示"
         },
         "showCentromere": {
           "type": "boolean",
           "default": true,
-          "description": "是否显示着丝粒"
-        },
-        "showRecombinationFreq": {
-          "type": "boolean",
-          "default": true,
-          "description": "是否显示重组频率"
+          "description": "是否显示着丝粒标注"
         },
         "interactive": {
           "type": "boolean",
           "default": true,
-          "description": "是否允许点击基因和交叉点查看详情"
+          "description": "是否允许点击交叉点查看详情"
+        },
+        "showTeachingTips": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示核心要点和常见错误警示面板"
         },
         "maternalLabel": {
           "type": "string",
-          "default": "母源",
+          "default": "母源 ♀",
           "description": "母源染色体标签"
         },
         "paternalLabel": {
           "type": "string",
-          "default": "父源",
+          "default": "父源 ♂",
           "description": "父源染色体标签"
+        },
+        "stage": {
+          "type": "string",
+          "default": "减数第一次分裂前期（四分体时期）",
+          "description": "减数分裂时期标注"
         }
       },
-      "a2ui_hint": "CrossoverMap 组件可视化染色体交叉互换图谱。LLM只需通过 properties 传入 chromosomeId（染色体编号）、chromosomeLength（长度cM）、genes（基因位点数组）和 crossoverPoints（交叉点数组）即可。组件已内置着丝粒标注、重组频率计算、带型显示和点击交互，不需要额外生成控件。",
+      "a2ui_hint": "CrossoverMap 组件可视化染色体交叉互换图谱，面向高中遗传学教学。组件已内置：同源染色体对（父源蓝色/母源红色，各含两条姐妹染色单体）、等位基因对位标注（A/a、B/b等）、交叉互换X形标记（在非姐妹染色单体之间）、重组后配子类型面板（亲本型/重组型及比例）、重组频率计算过程（含公式推导和图距换算）、教学提示面板（核心要点+常见错误警示）。LLM只需通过 properties 传入 alleles（等位基因数组）和 crossoverPoints（交叉点数组）即可。不需要额外生成控件。",
       "expresses": [
-        "染色体交叉互换位置",
-        "基因连锁关系",
-        "重组频率计算",
-        "着丝粒与基因相对位置",
-        "染色体带型模式",
-        "减数分裂交叉互换"
+        "同源染色体对与姐妹染色单体",
+        "等位基因对位标注",
+        "非姐妹染色单体间交叉互换",
+        "重组片段颜色互换",
+        "亲本型与重组型配子",
+        "重组频率计算与图距换算",
+        "减数分裂时期标注"
       ],
-      "educational_use": "帮助学生理解减数分裂中染色体交叉互换的机制，通过可视化图谱展示基因连锁、重组频率和基因定位的关系",
+      "educational_use": "帮助学生理解连锁互换定律：将抽象的减数分裂过程转化为可测量的基因距离，通过可视化图谱展示等位基因对位、交叉互换、配子类型和重组频率的关系。支持初高中到竞赛不同学段。",
       "cannot_express": [
         "减数分裂全过程动画",
         "三维染色体结构",
-        "基因表达调控",
-        "表观遗传修饰",
-        "DNA序列级别细节"
+        "三点测交与双交换基因排序推导",
+        "干涉与并发系数计算",
+        "基因表达调控或表观遗传"
       ]
     }
   ]

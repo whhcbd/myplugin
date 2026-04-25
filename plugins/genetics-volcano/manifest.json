@@ -1,0 +1,84 @@
+{
+  "id": "genetics-volcano",
+  "version": "1.0.0",
+  "subject": "genetics",
+  "name": "火山图插件",
+  "keywords": ["火山图", "差异表达", "基因", "RNA-seq", "显著性", "统计分析", "生物信息学"],
+  "entry": {
+    "js": "dist/index.esm.js"
+  },
+  "capabilities": [
+    {
+      "component_id": "VolcanoPlot",
+      "name": "火山图可视化",
+      "tags": ["火山图", "差异表达", "基因分析", "显著性检验", "fold change"],
+      "props_schema": {
+        "geneNames": {
+          "type": "string",
+          "default": "Gene_A,Gene_B,Gene_C,Gene_D,Gene_E,Gene_F,Gene_G,Gene_H,Gene_I,Gene_J",
+          "description": "基因名称列表，逗号分隔"
+        },
+        "log2FCs": {
+          "type": "string",
+          "default": "3.2,-2.8,1.5,-0.8,4.1,-3.5,0.5,-1.2,2.3,-4.0",
+          "description": "log2(Fold Change)值列表，逗号分隔，正值表示上调，负值表示下调"
+        },
+        "pValues": {
+          "type": "string",
+          "default": "0.001,0.002,0.01,0.3,0.0001,0.0005,0.4,0.15,0.005,0.0002",
+          "description": "P值列表，逗号分隔，范围0-1"
+        },
+        "fcThreshold": {
+          "type": "number",
+          "default": 1,
+          "min": 0.5,
+          "max": 3,
+          "description": "log2(Fold Change)阈值，|log2FC| > 此值视为差异显著（默认1表示2倍变化）"
+        },
+        "pThreshold": {
+          "type": "number",
+          "default": 0.05,
+          "description": "P值阈值，P < 此值视为统计显著（常用0.05或0.01）"
+        },
+        "title": {
+          "type": "string",
+          "default": "差异表达基因火山图",
+          "description": "图表标题"
+        },
+        "comparison": {
+          "type": "string",
+          "default": "Tumor vs Normal",
+          "description": "对比组说明，如'处理组 vs 对照组'"
+        },
+        "showLabels": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否显示Top基因标签"
+        },
+        "topN": {
+          "type": "number",
+          "default": 5,
+          "min": 1,
+          "max": 20,
+          "description": "标注Top N个最显著的基因"
+        }
+      },
+      "a2ui_hint": "VolcanoPlot 组件已内置阈值调节滑块、P值选择器和标签开关，不需要额外生成控件。只需通过 properties 传入基因数据（geneNames、log2FCs、pValues）和初始阈值即可。组件会自动计算显著性分类（上调/下调/无差异）并用红蓝灰三色区分。适用于展示RNA-seq、蛋白质组等差异表达分析结果。",
+      "expresses": [
+        "差异表达基因的全局分布景观",
+        "生物学意义（log2FC）与统计学意义（P值）的双重维度",
+        "显著上调/下调基因的数量和位置",
+        "阈值线划分的六个区域（左上/左中/左下/右上/右中/右下）",
+        "Top基因的标注和悬停详情"
+      ],
+      "educational_use": "帮助学生理解差异表达分析的核心概念：(1) log2FC表示差异幅度，(2) P值表示统计可靠性，(3) 双阈值筛选显著基因，(4) 红蓝配色区分上调下调。适用于高中生物竞赛、大学生物信息学课程和科研训练。",
+      "cannot_express": [
+        "三组及以上的多组比较（需用热图或Upset图）",
+        "时间序列的动态变化（需用折线图）",
+        "基因之间的相关性或网络关系",
+        "具体的生物学功能或通路富集",
+        "批次效应或技术重复的质控信息"
+      ]
+    }
+  ]
+}
